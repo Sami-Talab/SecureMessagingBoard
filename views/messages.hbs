@@ -1,0 +1,118 @@
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">Your Messages</h1>
+
+  <div class="mb-4">
+    <a href="/messages/create" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+      Compose New Message
+    </a>
+  </div>
+
+  {{#if messages.length}}
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+      <ul class="divide-y divide-gray-200">
+        {{#each messages}}
+          <li class="message-item cursor-pointer hover:bg-gray-50 transition-colors duration-150" data-message-id="{{_id}}">
+            <div class="px-4 py-4 sm:px-6">
+              <div class="flex items-center justify-between">
+                <p class="text-sm font-medium text-indigo-600 truncate">
+                  {{#if (eq senderId._id ../user._id)}}
+                    To: {{recipientId.username}}
+                  {{else}}
+                    From: {{senderId.username}}
+                  {{/if}}
+                </p>
+                <div class="ml-2 flex-shrink-0 flex">
+                  <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    {{formatDate timestamp}}
+                  </p>
+                </div>
+              </div>
+              <div class="mt-2 sm:flex sm:justify-between">
+                <div class="sm:flex">
+                  <p class="flex items-center text-sm text-gray-500 message-content" data-message-id="{{_id}}">
+                    Click to decrypt
+                  </p>
+                </div>
+                <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                  {{#if (eq senderId._id ../user._id)}}
+                    <a href="/messages/edit/{{_id}}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                  {{/if}}
+                </div>
+              </div>
+            </div>
+          </li>
+        {{/each}}
+      </ul>
+    </div>
+  {{else}}
+    <p class="text-gray-500">You don't have any messages yet.</p>
+  {{/if}}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const messageItems = document.querySelectorAll('.message-item');
+  
+  messageItems.forEach(item => {
+    const content = item.querySelector('.message-content');
+    const messageId = content.dataset.messageId;
+    
+    item.addEventListener('click', async () => {
+      if (content.classList.contains('decrypted')) {
+        content.textContent = 'Click to decrypt';
+        content.classList.remove('decrypted');
+      } else {
+        try {
+          const keyPassword = prompt("Enter your key password to decrypt the message:");
+          if (!keyPassword) {
+            throw new Error('Key password is required for decryption');
+          }
+
+          const response = await fetch(`/messages/decrypt/${messageId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ keyPassword }),
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to decrypt message');
+          }
+
+          const decryptedResponse = await fetch(`/messages/decrypted/${messageId}`);
+          if (!decryptedResponse.ok) {
+            throw new Error('Failed to retrieve decrypted message');
+          }
+
+          const { decryptedContent } = await decryptedResponse.json();
+          content.textContent = decryptedContent;
+          content.classList.add('decrypted');
+        } catch (error) {
+          console.error('Error decrypting message:', error);
+          content.textContent = `Error: ${error.message}`;
+          content.classList.add('error');
+        }
+      }
+    });
+  });
+});
+</script>
+<style>
+.message-item {
+  transition: background-color 0.3s ease;
+}
+.message-item:hover {
+  background-color: #f3f4f6;
+}
+.message-content.decrypted {
+  font-weight: bold;
+  color: #1f2937;
+}
+.message-content.error {
+  color: #dc2626;
+}
+</style>
+

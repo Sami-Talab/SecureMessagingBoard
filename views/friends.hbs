@@ -1,0 +1,156 @@
+<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">Friends</h1>
+
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6">
+      <h2 class="text-lg leading-6 font-medium text-gray-900">
+        Find Friends
+      </h2>
+      <div class="mt-4 flex">
+        <input type="text" id="userSearchInput" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Search for users">
+        <button id="userSearchBtn" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          Search
+        </button>
+      </div>
+      <div id="searchResults" class="mt-4"></div>
+    </div>
+  </div>
+
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6">
+      <h2 class="text-lg leading-6 font-medium text-gray-900">
+        Your Friends ({{friendCount}})
+      </h2>
+    </div>
+    <ul class="divide-y divide-gray-200">
+      {{#each friends}}
+        <li class="px-4 py-4 flex items-center justify-between">
+          <div class="text-sm font-medium text-gray-900">{{this.username}}</div>
+          <div class="text-sm text-gray-500">{{this.email}}</div>
+        </li>
+      {{else}}
+        <li class="px-4 py-4 text-sm text-gray-500">You don't have any friends yet.</li>
+      {{/each}}
+    </ul>
+  </div>
+
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+      <h2 class="text-lg leading-6 font-medium text-gray-900">
+        Friend Requests
+      </h2>
+    </div>
+    <ul id="friendRequestsList" class="divide-y divide-gray-200">
+      {{#each pendingRequests}}
+        <li class="px-4 py-4 flex items-center justify-between">
+          <div class="text-sm font-medium text-gray-900">{{this.from.username}}</div>
+          <div>
+            <form action="/friends/accept-request" method="POST" class="inline">
+              <input type="hidden" name="requestId" value="{{this._id}}">
+              <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mr-2">
+                Accept
+              </button>
+            </form>
+            <form action="/friends/decline-request" method="POST" class="inline">
+              <input type="hidden" name="requestId" value="{{this._id}}">
+              <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                Decline
+              </button>
+            </form>
+          </div>
+        </li>
+      {{else}}
+        <li class="px-4 py-4 text-sm text-gray-500">You don't have any pending friend requests.</li>
+      {{/each}}
+    </ul>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const userSearchInput = document.getElementById('userSearchInput');
+  const userSearchBtn = document.getElementById('userSearchBtn');
+  const searchResults = document.getElementById('searchResults');
+
+  userSearchBtn.addEventListener('click', function() {
+    const query = userSearchInput.value;
+    if (!query) {
+      alert('Please enter a search query');
+      return;
+    }
+    searchResults.innerHTML = '<div class="text-center"><div class="spinner"></div></div>';
+    fetch(`/friends/search?query=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(users => {
+        searchResults.innerHTML = '';
+        if (users.length === 0) {
+          searchResults.innerHTML = '<p class="text-gray-500">No users found</p>';
+        } else {
+          const ul = document.createElement('ul');
+          ul.className = 'divide-y divide-gray-200';
+          users.forEach(user => {
+            const li = document.createElement('li');
+            li.className = 'px-4 py-4 flex items-center justify-between';
+            li.innerHTML = `
+              <div class="text-sm font-medium text-gray-900">${user.username}</div>
+              <button class="sendFriendRequest bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" data-username="${user.username}">
+                Send Friend Request
+              </button>
+            `;
+            ul.appendChild(li);
+          });
+          searchResults.appendChild(ul);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        searchResults.innerHTML = '<p class="text-red-500">An error occurred while searching for users</p>';
+      });
+  });
+
+  searchResults.addEventListener('click', function(e) {
+    if (e.target.classList.contains('sendFriendRequest')) {
+      const recipientUsername = e.target.dataset.username;
+      fetch('/friends/send-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recipientUsername }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Friend request sent successfully');
+          e.target.disabled = true;
+          e.target.textContent = 'Request Sent';
+        } else {
+          alert(data.error || 'Failed to send friend request');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while sending friend request');
+      });
+    }
+  });
+});
+</script>
+
+<style>
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+

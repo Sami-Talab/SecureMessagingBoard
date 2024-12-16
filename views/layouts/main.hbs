@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - Secure Messaging App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="/" class="text-xl font-bold text-indigo-600">Secure Messaging</a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    {{#if user}}
+                        <a href="/profile" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Profile</a>
+                        <a href="/messages" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Messages</a>
+                        <a href="/friends/list" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Friends</a>
+                        <a href="/logout" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Logout</a>
+                    {{else}}
+                        <a href="/login" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Login</a>
+                        <a href="/signup" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Sign Up</a>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {{{body}}}
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 mt-8">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-gray-500 text-sm">
+                &copy; 2023 Secure Messaging App. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Helper function to format dates
+        Handlebars.registerHelper('formatDate', function(date) {
+            return new Date(date).toLocaleString();
+        });
+
+        // Helper function to truncate text
+        Handlebars.registerHelper('truncate', function(text, length) {
+            if (text.length <= length) {
+                return text;
+            }
+            return text.substr(0, length) + '...';
+        });
+    </script>
+</body>
+</html>
+
