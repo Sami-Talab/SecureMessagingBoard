@@ -44,22 +44,6 @@ An Example Message:
 }
 ```
 ## Link to Commented [Message](models/Message.mjs.js) and [Users](models/User.js) Draft Schema
-## Wireframes
-
-/login - Page to handle user login through Auth0.
-![login page](documentation/login.jpeg)
-
-/inbox - Displays all incoming messages for the logged-in user.
-![inbox page](documentation/inbox.jpeg)
-
-/compose - Page where users can select a connected contact and send an encrypted message.
-![compose page](documentation/compose.jpeg)
-
-/friend-requests - Displays incoming friend requests with options to accept or decline.
-![friend requests page](documentation/friendRequests.jpeg)
-
-## Site Map
-![site map](documentation/sitemap.jpeg)
 
 ## Use Cae
 1. As a new user, I can register and log in through Auth0, so I can securely access the application.
